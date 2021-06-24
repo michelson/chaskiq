@@ -115,10 +115,16 @@ Rails.application.configure do
       enable_starttls_auto: true
     }
   else
-    ActionMailer::Base.add_delivery_method :ses, AWS::SES::Base,
-                                           access_key_id: ENV['AWS_ACCESS_KEY_ID'],
-                                           secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
-                                           signature_version: 4
+    ses_config = {
+      credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY_ID'], ENV['AWS_SECRET_ACCESS_KEY'])
+    }
+    ses_config.merge!(
+      {
+        region: ENV['SES_REGION']
+      }
+    ) if ENV['SES_REGION']
+
+    Aws::Rails.add_action_mailer_delivery_method(:ses, ses_config)
 
     config.action_mailer.delivery_method = :ses
   end
